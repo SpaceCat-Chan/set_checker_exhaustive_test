@@ -43,7 +43,7 @@ fn main() {
             disagree_backtrack_fail += 1;
         }
     }
-    println!("agreements: {} ({agree_fails} fail, {agree_success} succeed), disagreements: {} ({disagree_backtrack_fail} should have failed, {disagree_backtrack_success} should have succeded)", agree_fails + agree_success, disagree_backtrack_fail + disagree_backtrack_success);
+    println!("agreements: {} ({agree_fails} fail, {agree_success} succeed), disagreements: {} ({disagree_backtrack_fail} should have failed, {disagree_backtrack_success} should have succeeded)", agree_fails + agree_success, disagree_backtrack_fail + disagree_backtrack_success);
 }
 
 const a_capacity: u8 = 11;
@@ -199,7 +199,7 @@ fn check_signals_backtracker_recurse(
                             new_to_test[i].1 += 1;
                             new_to_test[(1 << iter_count) + i].3 += 1;
                         }
-                        _ => unimplemented!(),
+                        _ => unreachable!(),
                     }
                 }
             }
