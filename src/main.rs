@@ -175,36 +175,52 @@ fn check_signals_backtracker_recurse(
         Some((sets, rest)) => {
             let mut new_to_test = [(0, 0, 0, 0); 16];
             new_to_test[0] = current_counts;
-            for (iter_count, set) in sets.iter().enumerate() {
-                for i in 0..(1 << iter_count) {
-                    new_to_test[(1 << iter_count) + i] = new_to_test[i];
+            let mut state_count = 1;
+            for set in sets {
+                for i in 0..state_count {
                     match set & 3 {
                         0 => {
                             // AC
+                            if new_to_test[i].0 == current_counts.0 && current_counts.2 == current_counts.2 {
+                                new_to_test[state_count] = new_to_test[i];
                             new_to_test[i].0 += 1;
-                            new_to_test[(1 << iter_count) + i].2 += 1;
+                                new_to_test[state_count].2 += 1;
+                                state_count += 1;
+                            }
                         }
                         1 => {
                             // AD
+                            if new_to_test[i].0 == current_counts.0 && current_counts.3 == current_counts.3 {
+                                new_to_test[state_count] = new_to_test[i];
                             new_to_test[i].0 += 1;
-                            new_to_test[(1 << iter_count) + i].3 += 1;
+                                new_to_test[state_count].3 += 1;
+                                state_count += 1;
+                            }
                         }
                         2 => {
                             // BC
+                            if new_to_test[i].1 == current_counts.1 && current_counts.2 == current_counts.2 {
+                                new_to_test[state_count] = new_to_test[i];
                             new_to_test[i].1 += 1;
-                            new_to_test[(1 << iter_count) + i].2 += 1;
+                                new_to_test[state_count].2 += 1;
+                                state_count += 1;
+                            }
                         }
                         3 => {
                             // BD
+                            if new_to_test[i].1 == current_counts.1 && current_counts.3 == current_counts.3 {
+                                new_to_test[state_count] = new_to_test[i];
                             new_to_test[i].1 += 1;
-                            new_to_test[(1 << iter_count) + i].3 += 1;
+                                new_to_test[state_count].3 += 1;
+                                state_count += 1;
+                            }
                         }
                         _ => unreachable!(),
                     }
                 }
             }
 
-            for new_amounts in &new_to_test[0..1 << sets.len()] {
+            for new_amounts in &new_to_test[0..state_count] {
                 if check_signals_backtracker_recurse(rest, *new_amounts, seen_states) {
                     return true;
                 }
