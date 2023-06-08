@@ -14,7 +14,7 @@ fn main() {
     }
 
     let progress = indicatif::ProgressBar::new(test_cases.len() as _);
-    progress.set_style(ProgressStyle::with_template("[{elapsed}] [{bar:60.green/green}] {pos:>7}/{len:7}")
+    progress.set_style(ProgressStyle::with_template("[{elapsed_precise}, {eta_precise} left] [{bar:60.green/green}] {pos:>7}/{len:7}")
     .unwrap()
     .progress_chars("━╸ "));
 
