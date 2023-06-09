@@ -18,7 +18,7 @@ fn main() {
         ProgressStyle::with_template(
             "[{elapsed_precise}, {eta_precise} left] [{bar:60.green/green}] {pos:>7}/{len:7}",
         )
-    .unwrap()
+        .unwrap()
         .progress_chars("━╸ "),
     );
 
@@ -58,9 +58,9 @@ const d_capacity: u8 = 10;
 
 fn check_signals_heuristic(signals: &[BTreeSet<u8>]) -> bool {
     // a quick thing to imitate how lofty's hashing solution works
-    return signals.iter().map(|set| set.len()).sum::<usize>() <= 46;
+    // return signals.iter().map(|set| set.len()).sum::<usize>() <= 46;
 
-    let (a, b, c, d) = (0, 0, 0, 0);
+    let (mut a, mut b, mut c, mut d) = (0, 0, 0, 0);
     let (mut ac, mut ad, mut bc, mut bd) = (0, 0, 0, 0);
 
     for signal in signals {
@@ -77,14 +77,52 @@ fn check_signals_heuristic(signals: &[BTreeSet<u8>]) -> bool {
                 }
             }
             2 => {
-                for set in signal {
-                    match set {
-                        0 => ac += 1,
-                        1 => ad += 1,
-                        2 => bc += 1,
-                        3 => bd += 1,
-                        _ => unreachable!(),
+                let first = signal.first().unwrap();
+                let second = signal.last().unwrap();
+                match (first, second) {
+                    (0, 1) => {
+                        // AC, AD
+                        ac += 1;
+                        ad += 1;
+                        if a < a_capacity {
+                            a += 1;
+                        }
                     }
+                    (0, 2) => {
+                        // AC, BC
+                        ac += 1;
+                        bc += 1;
+                        if c < c_capacity {
+                            c += 1;
+                        }
+                    }
+                    (0, 3) => {
+                        // AC, BD
+                        ac += 1;
+                        bd += 1;
+                    }
+                    (1, 2) => {
+                        // AD, BC
+                        ad += 1;
+                        bc += 1;
+                    }
+                    (1, 3) => {
+                        // AD, BD
+                        ad += 1;
+                        bd += 1;
+                        if d < d_capacity {
+                            d += 1;
+                        }
+                    }
+                    (2, 3) => {
+                        // BC, BD
+                        bc += 1;
+                        bd += 1;
+                        if b < b_capacity {
+                            b += 1;
+                        }
+                    }
+                    _ => unreachable!(),
                 }
             }
             3 => {
@@ -198,10 +236,10 @@ fn check_signals_backtracker_recurse(
 
                 (true, false, false, true) => {
                     vec![(1, 1, 0, 0), (1, 0, 0, 1), (0, 1, 1, 0), (0, 0, 1, 1)]
-                            }
+                }
                 (false, true, true, false) => {
                     vec![(1, 1, 0, 0), (1, 0, 1, 0), (0, 1, 0, 1), (0, 0, 1, 1)]
-                        }
+                }
 
                 (true, true, true, false) => vec![(1, 1, 0, 0), (1, 0, 1, 0), (0, 0, 1, 1)],
                 (true, true, false, true) => vec![(1, 1, 0, 0), (1, 0, 0, 1), (0, 0, 1, 1)],
@@ -215,7 +253,7 @@ fn check_signals_backtracker_recurse(
                 new.1 += current_counts.1;
                 new.2 += current_counts.2;
                 new.3 += current_counts.3;
-                    }
+            }
             for new_amounts in new_to_test {
                 if check_signals_backtracker_recurse(rest, new_amounts, seen_states) {
                     return true;
