@@ -173,59 +173,57 @@ fn check_signals_backtracker_recurse(
     match signals.split_first() {
         None => true,
         Some((sets, rest)) => {
-            let mut new_to_test = [(0, 0, 0, 0); 16];
-            new_to_test[0] = current_counts;
-            let mut state_count = 1;
-            for set in sets {
-                for i in 0..state_count {
-                    match set & 3 {
-                        0 => {
-                            // AC
-                            if new_to_test[i].0 == current_counts.0 && current_counts.2 == current_counts.2 {
-                                new_to_test[state_count] = new_to_test[i];
-                            new_to_test[i].0 += 1;
-                                new_to_test[state_count].2 += 1;
-                                state_count += 1;
+            let mut new_to_test = match (
+                sets.contains(&0),
+                sets.contains(&1),
+                sets.contains(&2),
+                sets.contains(&3),
+            ) {
+                (false, false, false, false) => unreachable!(),
+
+                (true, false, false, false) => vec![(1, 0, 0, 0), (0, 0, 1, 0)],
+                (false, true, false, false) => vec![(1, 0, 0, 0), (0, 0, 0, 1)],
+                (false, false, true, false) => vec![(0, 1, 0, 0), (0, 0, 1, 0)],
+                (false, false, false, true) => vec![(0, 1, 0, 0), (0, 0, 0, 1)],
+
+                (true, true, false, false) => vec![(1, 0, 0, 0), (0, 0, 1, 1)],
+                (false, false, true, true) => vec![(0, 1, 0, 0), (0, 0, 1, 1)],
+                (true, false, true, false) => vec![(0, 0, 1, 0), (1, 1, 0, 0)],
+                (false, true, false, true) => vec![(0, 0, 0, 1), (1, 1, 0, 0)],
+
+                (true, false, false, true) => {
+                    vec![(1, 1, 0, 0), (1, 0, 0, 1), (0, 1, 1, 0), (0, 0, 1, 1)]
                             }
+                (false, true, true, false) => {
+                    vec![(1, 1, 0, 0), (1, 0, 1, 0), (0, 1, 0, 1), (0, 0, 1, 1)]
                         }
-                        1 => {
-                            // AD
-                            if new_to_test[i].0 == current_counts.0 && current_counts.3 == current_counts.3 {
-                                new_to_test[state_count] = new_to_test[i];
-                            new_to_test[i].0 += 1;
-                                new_to_test[state_count].3 += 1;
-                                state_count += 1;
-                            }
-                        }
-                        2 => {
-                            // BC
-                            if new_to_test[i].1 == current_counts.1 && current_counts.2 == current_counts.2 {
-                                new_to_test[state_count] = new_to_test[i];
-                            new_to_test[i].1 += 1;
-                                new_to_test[state_count].2 += 1;
-                                state_count += 1;
-                            }
-                        }
-                        3 => {
-                            // BD
-                            if new_to_test[i].1 == current_counts.1 && current_counts.3 == current_counts.3 {
-                                new_to_test[state_count] = new_to_test[i];
-                            new_to_test[i].1 += 1;
-                                new_to_test[state_count].3 += 1;
-                                state_count += 1;
-                            }
-                        }
-                        _ => unreachable!(),
+
+                (true, true, true, false) => vec![(1, 1, 0, 0), (1, 0, 1, 0), (0, 0, 1, 1)],
+                (true, true, false, true) => vec![(1, 1, 0, 0), (1, 0, 0, 1), (0, 0, 1, 1)],
+                (true, false, true, true) => vec![(1, 1, 0, 0), (0, 1, 1, 0), (0, 0, 1, 1)],
+                (false, true, true, true) => vec![(1, 1, 0, 0), (0, 1, 0, 1), (0, 0, 1, 1)],
+
+                (true, true, true, true) => vec![(1, 1, 0, 0), (0, 0, 1, 1)],
+            };
+            for new in &mut new_to_test {
+                new.0 += current_counts.0;
+                new.1 += current_counts.1;
+                new.2 += current_counts.2;
+                new.3 += current_counts.3;
                     }
+
                 }
             }
 
-            for new_amounts in &new_to_test[0..state_count] {
-                if check_signals_backtracker_recurse(rest, *new_amounts, seen_states) {
+            for new_amounts in new_to_test {
+                if check_signals_backtracker_recurse(rest, new_amounts, seen_states, debug) {
                     return true;
                 }
             }
             seen_states.insert((current_counts, signals.len()));
+            unsafe {
+                FAILS += 1;
+            }
             false
         }
     }
