@@ -14,18 +14,19 @@ fn main() {
     }
 
     let progress = indicatif::ProgressBar::new(test_cases.len() as _);
-    progress.set_style(ProgressStyle::with_template("[{elapsed_precise}, {eta_precise} left] [{bar:60.green/green}] {pos:>7}/{len:7}")
+    progress.set_style(
+        ProgressStyle::with_template(
+            "[{elapsed_precise}, {eta_precise} left] [{bar:60.green/green}] {pos:>7}/{len:7}",
+        )
     .unwrap()
-    .progress_chars("━╸ "));
+        .progress_chars("━╸ "),
+    );
 
     let mut agree_fails = 0;
     let mut agree_success = 0;
     let mut disagree_backtrack_fail = 0;
     let mut disagree_backtrack_success = 0;
-    for (index, test_case) in test_cases
-        .into_iter()
-        .enumerate()
-    {
+    for (index, test_case) in test_cases.into_iter().enumerate() {
         progress.inc(1);
         let heuristic_res = check_signals_heuristic(&test_case[..]);
         let backtracker_res = check_signals_backtracker(&test_case[..]);
@@ -36,10 +37,14 @@ fn main() {
                 agree_fails += 1;
             }
         } else if backtracker_res {
-            progress.println(format!("disagreement on case {index}, backtracker says it should have worked"));
+            progress.println(format!(
+                "disagreement on case {index}, backtracker says it should have worked"
+            ));
             disagree_backtrack_success += 1;
         } else {
-            progress.println(format!("disagreement on case {index}, backtracker says it should have failed"));
+            progress.println(format!(
+                "disagreement on case {index}, backtracker says it should have failed"
+            ));
             disagree_backtrack_fail += 1;
         }
     }
@@ -211,12 +216,8 @@ fn check_signals_backtracker_recurse(
                 new.2 += current_counts.2;
                 new.3 += current_counts.3;
                     }
-
-                }
-            }
-
             for new_amounts in new_to_test {
-                if check_signals_backtracker_recurse(rest, new_amounts, seen_states, debug) {
+                if check_signals_backtracker_recurse(rest, new_amounts, seen_states) {
                     return true;
                 }
             }
