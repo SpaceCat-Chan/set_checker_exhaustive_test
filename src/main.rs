@@ -1,5 +1,7 @@
 use std::collections::BTreeSet;
 use std::collections::HashSet;
+use std::time::Duration;
+use std::time::Instant;
 
 use indicatif::ProgressIterator;
 use indicatif::ProgressStyle;
@@ -26,10 +28,17 @@ fn main() {
     let mut agree_success = 0;
     let mut disagree_backtrack_fail = 0;
     let mut disagree_backtrack_success = 0;
+    let mut total_hue_time = Duration::ZERO;
+    let mut total_back_time = Duration::ZERO;
     for (index, test_case) in test_cases.into_iter().enumerate() {
         progress.inc(1);
+        let hue_time = Instant::now();
         let heuristic_res = check_signals_heuristic(&test_case[..]);
+        let back_time = Instant::now();
         let backtracker_res = check_signals_backtracker(&test_case[..]);
+        let done_time = Instant::now();
+        total_hue_time += back_time - hue_time;
+        total_back_time += done_time - back_time;
         if heuristic_res == backtracker_res {
             if backtracker_res {
                 agree_success += 1;
@@ -49,6 +58,11 @@ fn main() {
         }
     }
     println!("agreements: {} ({agree_fails} fail, {agree_success} succeed), disagreements: {} ({disagree_backtrack_fail} should have failed, {disagree_backtrack_success} should have succeeded)", agree_fails + agree_success, disagree_backtrack_fail + disagree_backtrack_success);
+    println!(
+        "hueristic took {}s, backtracker took {}s",
+        total_hue_time.as_secs_f64(),
+        total_back_time.as_secs_f64()
+    );
 }
 
 const a_capacity: u8 = 11;
