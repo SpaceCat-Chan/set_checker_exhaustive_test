@@ -64,88 +64,38 @@ fn check_signals_heuristic(signals: &[BTreeSet<u8>]) -> bool {
     let (mut ac, mut ad, mut bc, mut bd) = (0, 0, 0, 0);
 
     for signal in signals {
+        for set in signal {
+            match set {
+                0 => ac += 1,
+                1 => ad += 1,
+                2 => bc += 1,
+                3 => bd += 1,
+                _ => unreachable!(),
+            }
+        }
         match signal.len() {
-            1 => {
-                for set in signal {
-                    match set {
-                        0 => ac += 1,
-                        1 => ad += 1,
-                        2 => bc += 1,
-                        3 => bd += 1,
-                        _ => unreachable!(),
-                    }
-                }
-            }
-            2 => {
-                let first = signal.first().unwrap();
-                let second = signal.last().unwrap();
-                match (first, second) {
-                    (0, 1) => {
-                        // AC, AD
-                        ac += 1;
-                        ad += 1;
-                        if a < a_capacity {
-                            a += 1;
-                        }
-                    }
-                    (0, 2) => {
-                        // AC, BC
-                        ac += 1;
-                        bc += 1;
-                        if c < c_capacity {
-                            c += 1;
-                        }
-                    }
-                    (0, 3) => {
-                        // AC, BD
-                        ac += 1;
-                        bd += 1;
-                    }
-                    (1, 2) => {
-                        // AD, BC
-                        ad += 1;
-                        bc += 1;
-                    }
-                    (1, 3) => {
-                        // AD, BD
-                        ad += 1;
-                        bd += 1;
-                        if d < d_capacity {
-                            d += 1;
-                        }
-                    }
-                    (2, 3) => {
-                        // BC, BD
-                        bc += 1;
-                        bd += 1;
-                        if b < b_capacity {
-                            b += 1;
-                        }
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            3 => {
-                for set in signal {
-                    match set {
-                        0 => ac += 1,
-                        1 => ad += 1,
-                        2 => bc += 1,
-                        3 => bd += 1,
-                        _ => unreachable!(),
-                    }
-                }
-            }
+            1 => {}
+            2 => match (signal.first().unwrap(), signal.last().unwrap()) {
+                (0, 1) => a = a_capacity.min(a + 1),
+                (0, 2) => c = c_capacity.min(c + 1),
+                (0, 3) | (1, 2) => {}
+                (1, 3) => d = d_capacity.min(d + 1),
+                (2, 3) => b = b_capacity.min(b + 1),
+                _ => unreachable!(),
+            },
+            3 => match (
+                signal.contains(&0),
+                signal.contains(&1),
+                signal.contains(&2),
+                signal.contains(&3),
+            ) {
+                (false, _, _, _) | (_, false, _, _) => b = b_capacity.min(b + 1),
+                (_, _, false, _) | (_, _, _, false) => a = a_capacity.min(a + 1),
+                _ => unreachable!(),
+            },
             4 => {
-                for set in signal {
-                    match set {
-                        0 => ac += 1,
-                        1 => ad += 1,
-                        2 => bc += 1,
-                        3 => bd += 1,
-                        _ => unreachable!(),
-                    }
-                }
+                a = a_capacity.min(a + 1);
+                c = c_capacity.min(c + 1);
             }
             _ => unreachable!(),
         }
